@@ -1,0 +1,43 @@
+version: '3'
+networks:
+  app-tier:
+    driver: bridge
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: app.dockerfile
+    working_dir: /var/www
+    restart: always
+    volumes:
+      - ./:/var/www
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    tty: true
+    ports:
+      - "9001:9000"
+  nginx:
+    build:
+      context: ./
+      dockerfile: nginx.dockerfile
+    restart: always
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - app
+    ports:
+      - "8001:8001"
+  # The Database
+  database:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'homestead'
+      MYSQL_USER: 'mysql'
+      MYSQL_PASSWORD: '12345678'
+      MYSQL_ROOT_PASSWORD: '12345678'
+    ports:
+      - "3306:3306"
